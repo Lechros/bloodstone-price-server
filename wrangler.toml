@@ -1,0 +1,6 @@
+name = "bloodstone-price-server"
+main = "src/index.ts"
+compatibility_date = "2023-04-27"
+
+[triggers]
+crons = [ "1 * * * *" ]

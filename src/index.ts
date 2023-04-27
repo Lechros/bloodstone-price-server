@@ -10,23 +10,40 @@
  * Learn more at https://developers.cloudflare.com/workers/runtime-apis/scheduled-event/
  */
 
+import { getPrice } from "./api/fetch";
+
 export interface Env {
-	// Example binding to KV. Learn more at https://developers.cloudflare.com/workers/runtime-apis/kv/
-	// MY_KV_NAMESPACE: KVNamespace;
-	//
-	// Example binding to Durable Object. Learn more at https://developers.cloudflare.com/workers/runtime-apis/durable-objects/
-	// MY_DURABLE_OBJECT: DurableObjectNamespace;
-	//
-	// Example binding to R2. Learn more at https://developers.cloudflare.com/workers/runtime-apis/r2/
-	// MY_BUCKET: R2Bucket;
+  // create .dev.vars file with api key when in dev environment.
+  API_KEY: string;
 }
 
+let data: Awaited<ReturnType<typeof getPrice>> | undefined;
+
 export default {
-	async scheduled(
-		controller: ScheduledController,
-		env: Env,
-		ctx: ExecutionContext
-	): Promise<void> {
-		console.log(`Hello World!`);
-	},
+  async scheduled(
+    controller: ScheduledController,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<void> {
+    data = await getPrice(env.API_KEY);
+  },
+
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<Response> {
+    if (data === undefined) {
+      data = await getPrice(env.API_KEY);
+    }
+    return Response.json(data, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Allow-Origin": "https://bloodstone.pages.dev",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    });
+  },
 };

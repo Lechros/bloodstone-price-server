@@ -66,5 +66,9 @@ export async function getPrice(apiKey: string) {
 
   await Promise.all(promises);
 
+  for (const [name, value] of Object.entries(result)) {
+    result[name as keyof typeof result] = Math.round(value * 10) / 10;
+  }
+
   return result;
 }
